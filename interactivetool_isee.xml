@@ -1,0 +1,274 @@
+<tool id="interactive_tool_isee" tool_type="interactive" name="iSEE" version="0.0.1">
+  <requirements>
+    <container type="docker">neoformit/galaxy-isee-it</container>
+  </requirements>
+
+  <entry_points>
+    <entry_point name="iSEE Single Cell Visualisation" requires_domain="True">
+      <!-- This port is exposed by the docker container -->
+      <port>8888</port>
+    </entry_point>
+  </entry_points>
+
+  <command><![CDATA[
+
+## WDIR: /import
+
+## #set LOG_PATH = "${__tool_data_path__}/isee.log"
+
+#set INPUT_PATH = "sce"
+#set RSCRIPT = '/scripts/isee.R'
+
+ln -s '$input.extra_files_path' '$INPUT_PATH' &&
+ln -s '$isee_script' '$RSCRIPT' &&
+ln -s '${__tool_directory__}/isee/params_config.py' ./params_config.py &&
+cp '$isee_script' '$outfile' &&
+
+/scripts/run.sh '$RSCRIPT'
+
+  ]]>
+  </command>
+
+  <configfiles>
+    <configfile name="isee_script"><![CDATA[
+
+#set INPUT_PATH = "sce"
+
+## Import render functions and render shiny app code
+#import os
+#import importlib.util
+#set modpath = $os.path.join($__tool_directory__, "isee_render.py")
+#set spec = $importlib.util.spec_from_file_location("isee_render", $modpath)
+#set render = $importlib.util.module_from_spec(spec)
+#$spec.loader.exec_module(render)
+
+shhh <- suppressPackageStartupMessages  # It's a library, so shhh!
+
+shhh(library(iSEE))
+shhh(library(HDF5Array))
+
+sce_path <- '$INPUT_PATH'
+sce <- loadHDF5SummarizedExperiment(sce_path)
+
+$render.app($custom)
+
+shiny::runApp(app, host="0.0.0.0", port=8888))
+
+]]>
+    </configfile>
+  </configfiles>
+
+  <inputs>
+    <param
+      name="input"
+      type="data"
+      format="rdata.se"
+      label="HDF5SummarizedExperiment: rdata.se (composite)"
+      help="This datatype represents a HDF5SummarizedExperiment object as
+        exported from R."
+    />
+
+    <!-- NOT YET CONFIGURED -->
+    <conditional name="custom">
+      <param name="selected" label="Customize iSEE display" type="boolean"/>
+
+      <when value="true">
+
+        <conditional name="method">
+          <param name="selected" label="Method" type="select">
+            <option value="choice" selected="true"> Preconfigured options </option>
+            <option value="custom"> Custom R configuration </option>
+          </param>
+
+          <when value="choice">
+            <!-- Choices to go here as repeat (plots) and select (colors) -->
+            <!-- Not sure about "extras" -->
+
+            <!-- Need to define choice of plots with options for each -->
+            <!-- And a set of colormaps -->
+
+            <repeat name="plots" title="Initial plots">
+
+              <conditional name="plot_types">
+                <param name="plot_type" type="select" label="Plot type">
+                  <option value="reduced_dimension_plot">Reduced dimension plot</option>
+                  <option value="feature_assay_plot">Feature assay plot</option>
+                  <option value="column_data_plot">Column data plot</option>
+                  <option value="row_data_table">Row data table</option>
+                  <!-- <option value="column_data_table">Column data table</option>
+                  <option value="row_data_plot">Row data plot</option>
+                  <option value="sample_assay_plot">Sample assay plot</option>
+                  <option value="complex_heatmap_plot">Complex heatmap plot</option> -->
+                </param>
+
+                <!-- Params for each plot type must match render.py function args -->
+
+                <when value="reduced_dimension_plot">
+                  <param name="plot_type_type" type="select" label="Plot type">
+                    <option value="UMAP">UMAP</option>
+                    <option value="UMAP">PCA</option>
+                  </param>
+
+                  <param name="color_by" type="select" label="Color by">
+                    <option value="Column data">None</option>
+                    <option value="Column data">Column data</option>
+                    <option value="Column data">Feature name</option>
+                    <option value="Column data">Sample name</option>
+                    <option value="Column data">Column selection</option>
+                  </param>
+
+                  <param name="color_by_col" type="select" label="Color by column">
+                    <option value="cluster">cluster</option>
+                  </param>
+
+                  <param name="vb_open" type="select" label="Visual box open">
+                    <option value="TRUE">Yes</option>
+                    <option value="FALSE">No</option>
+                  </param>
+
+                  <param name="pw" type="select" label="Plot width" help="A width of 12 fills an entire row">
+                    <option value="2">2</option>
+                    <option value="4">4</option>
+                    <option value="6" selected="true">6</option>
+                    <option value="8">8</option>
+                    <option value="10">10</option>
+                    <option value="12">12</option>
+                  </param>
+                </when>
+
+                <when value="feature_assay_plot">
+                  <param name="xaxis" type="select" label="Feature to display on X-axis">
+                    <option value="Column data">Column data</option>
+                  </param>
+
+                  <param name="xaxis_column_data" type="select" label="X-axis column data">
+                    <option value="Column data">Column data</option>
+                  </param>
+
+                  <param name="color_by" type="select" label="Color by">
+                    <option value="Column data">Column data</option>
+                  </param>
+
+                  <param name="color_by_col" type="select" label="Color by column">
+                    <option value="cluster">cluster</option>
+                  </param>
+
+                  <param name="db_open" type="select" label="Display box open">
+                    <option value="TRUE">Yes</option>
+                    <option value="FALSE">No</option>
+                  </param>
+
+                  <param name="vb_open" type="select" label="Visual box open">
+                    <option value="TRUE">Yes</option>
+                    <option value="FALSE">No</option>
+                  </param>
+
+                  <param name="pw" type="select" label="Plot width" help="A width of 12 fills an entire row">
+                    <option value="2">2</option>
+                    <option value="4">4</option>
+                    <option value="6" selected="true">6</option>
+                    <option value="8">8</option>
+                    <option value="10">10</option>
+                    <option value="12">12</option>
+                  </param>
+                </when>
+
+                <when value="column_data_plot">
+                  <param name="pw" type="select" label="Plot width" help="A width of 12 fills an entire row">
+                    <option value="2">2</option>
+                    <option value="4">4</option>
+                    <option value="6" selected="true">6</option>
+                    <option value="8">8</option>
+                    <option value="10">10</option>
+                    <option value="12">12</option>
+                  </param>
+                </when>
+
+                <when value="row_data_table">
+                  <param name="pw" type="select" label="Plot width" help="A width of 12 fills an entire row">
+                    <option value="2">2</option>
+                    <option value="4">4</option>
+                    <option value="6" selected="true">6</option>
+                    <option value="8">8</option>
+                    <option value="10">10</option>
+                    <option value="12">12</option>
+                  </param>
+                </when>
+              </conditional>
+
+            </repeat>
+
+          </when>
+
+          <when value="custom">
+            <param
+              name="isee_params"
+              type="data"
+              format="txt"
+              label="iSEE parameters"
+              help="Pass arbitrary keyword arguments to iSEE().
+                In order to use this field, please upload a text dataset containing
+                valid R code (you may wish to use the paste function to upload)."
+              />
+          </when>
+        </conditional>
+
+      </when>
+    </conditional>
+  </inputs>
+
+  <outputs>
+    <data name="outfile" format="txt"
+          label="${tool.name} on ${on_string}: Rscript" />
+  </outputs>
+
+  <tests>
+  </tests>
+
+  <help><![CDATA[
+
+**Overview**
+
+iSEE provides a web interface for visualising single-cell transcriptomics
+datasets encapsulated in an HDF5SummarizedExperiment object.
+
+-----
+
+**Input**
+
+The tool takes a single HDF5SummarizedExperiment dataset as an input,
+which can be uploaded as a composite datatype ``rdata.se``, and requires
+two input files: ``se.rds`` and ``assays.h5``. These data can be rendered
+from the R ``HDF5SummarizedExperiment`` object with the function
+``saveHDF5SummarizedExperiment()``. This object comes with the R package
+``HDF5Array``.
+
+-----
+
+**Useful links:**
+
+Documentation on ``HDF5SummarizedExperiment``:
+
+https://rdrr.io/bioc/HDF5Array/man/saveHDF5SummarizedExperiment.html
+
+HDF5Array manual:
+
+https://bioc.ism.ac.jp/packages/3.7/bioc/manuals/HDF5Array/man/HDF5Array.pdf
+
+    ]]>
+  </help>
+
+  <citations>
+    <citation type="bibtex">
+      @article{rue2018isee,
+        title={iSEE: interactive summarizedexperiment explorer},
+        author={Rue-Albrecht, Kevin and Marini, Federico and Soneson,
+          Charlotte and Lun, Aaron TL},
+        journal={F1000Research},
+        volume={7},
+        year={2018},
+        publisher={Faculty of 1000 Ltd}
+      }
+    </citation>
+  </citations>
+</tool>
