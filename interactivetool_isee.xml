@@ -36,7 +36,7 @@ cp '$isee_script' '$outfile' &&
 
 #set INPUT_PATH = "sce"
 
-## Import render functions and render shiny app code
+## Import render function to template R Shiny app code
 #import os
 #import importlib.util
 #set modpath = $os.path.join($__tool_directory__, "isee_render.py")
@@ -57,8 +57,7 @@ $render.app($custom)
 suppressWarnings(
   shiny::runApp(app, host="0.0.0.0", port=8888, quiet=TRUE))
 
-]]>
-    </configfile>
+]]></configfile>
   </configfiles>
 
   <inputs>
@@ -71,11 +70,9 @@ suppressWarnings(
         exported from R."
     />
 
-    <!-- NOT YET CONFIGURED -->
-    <!-- NOT YET CONFIGURED -->
-    <!-- NOT YET CONFIGURED -->
+    <!-- THIS SECTION IN DEVELOPMENT -->
     <conditional name="custom">
-      <param name="selected" label="Customize iSEE display" type="boolean" hidden="true"/>
+      <param name="selected" label="Customize iSEE display" type="boolean"/>
 
       <when value="true">
 
@@ -100,10 +97,12 @@ suppressWarnings(
                   <option value="feature_assay_plot">Feature assay plot</option>
                   <option value="column_data_plot">Column data plot</option>
                   <option value="row_data_table">Row data table</option>
-                  <!-- <option value="column_data_table">Column data table</option>
+                  <option value="column_data_table">Column data table</option>
                   <option value="row_data_plot">Row data plot</option>
+                  <!--
                   <option value="sample_assay_plot">Sample assay plot</option>
-                  <option value="complex_heatmap_plot">Complex heatmap plot</option> -->
+                  <option value="complex_heatmap_plot">Complex heatmap plot</option>
+                  -->
                 </param>
 
                 <!-- Params for each plot type must match render.py function args -->
@@ -114,6 +113,7 @@ suppressWarnings(
                     <option value="UMAP">PCA</option>
                   </param>
 
+                  <!-- Pretty sure these don't make sense without reading in the data columns (not possible)
                   <param name="color_by" type="select" label="Color by">
                     <option value="Column data">None</option>
                     <option value="Column data">Column data</option>
@@ -125,6 +125,7 @@ suppressWarnings(
                   <param name="color_by_col" type="select" label="Color by column">
                     <option value="cluster">cluster</option>
                   </param>
+                  -->
 
                   <param name="vb_open" type="select" label="Visual box open">
                     <option value="TRUE">Yes</option>
@@ -150,6 +151,7 @@ suppressWarnings(
                     <option value="Column data">Column data</option>
                   </param>
 
+                  <!-- Pretty sure these don't make sense without reading in the data columns (not possible)
                   <param name="color_by" type="select" label="Color by">
                     <option value="Column data">Column data</option>
                   </param>
@@ -157,6 +159,7 @@ suppressWarnings(
                   <param name="color_by_col" type="select" label="Color by column">
                     <option value="cluster">cluster</option>
                   </param>
+                  -->
 
                   <param name="db_open" type="select" label="Display box open">
                     <option value="TRUE">Yes</option>
