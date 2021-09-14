@@ -5,7 +5,7 @@ USER     = "ubuntu"             -- Remote user
 SRC_DIR  = "/home/cameron/dev/galaxy/isee-dev/"   -- Trailing slash syncs dir contents only
 DEST_DIR = "/home/ubuntu/isee/dev"
 RSA_KEY  = "~/.ssh/gx-dev"
-EXCLUDE  = { 'sync', '.lsyncd.lua' }
+EXCLUDE  = { 'sync', '.lsyncd.lua', '.git' }
 
 
 -- Shouldn't need to touch this:

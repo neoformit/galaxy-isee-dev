@@ -14,7 +14,7 @@
 
 ## WDIR: /import
 
-## #set LOG_PATH = "${__tool_data_path__}/isee.log"
+#set LOG_PATH = "${__tool_data_path__}/isee.log"
 
 #set INPUT_PATH = "sce"
 #set RSCRIPT = '/scripts/isee.R'
@@ -24,7 +24,9 @@ ln -s '$isee_script' '$RSCRIPT' &&
 ln -s '${__tool_directory__}/isee/params_config.py' ./params_config.py &&
 cp '$isee_script' '$outfile' &&
 
-/scripts/run.sh '$RSCRIPT'
+## Redirect stderr is necessary to stop R "warning" output from 'painting' job
+## status as "failed"
+/scripts/run.sh '$RSCRIPT' > $LOG_PATH 2>&1
 
   ]]>
   </command>
@@ -52,7 +54,8 @@ sce <- loadHDF5SummarizedExperiment(sce_path)
 
 $render.app($custom)
 
-shiny::runApp(app, host="0.0.0.0", port=8888))
+suppressWarnings(
+  shiny::runApp(app, host="0.0.0.0", port=8888, quiet=TRUE))
 
 ]]>
     </configfile>
@@ -69,8 +72,10 @@ shiny::runApp(app, host="0.0.0.0", port=8888))
     />
 
     <!-- NOT YET CONFIGURED -->
+    <!-- NOT YET CONFIGURED -->
+    <!-- NOT YET CONFIGURED -->
     <conditional name="custom">
-      <param name="selected" label="Customize iSEE display" type="boolean"/>
+      <param name="selected" label="Customize iSEE display" type="boolean" hidden="true"/>
 
       <when value="true">
 
