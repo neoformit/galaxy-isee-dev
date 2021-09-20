@@ -23,6 +23,7 @@ def app(custom):
     call = "app <- iSEE(sce"
 
     if custom['selected']:
+        # User specified layout in tool form
         if custom['method']['selected'].value == 'choice':
             # Template choices into call
             call = render_plots(call, custom['method']['plots'])
@@ -33,6 +34,10 @@ def app(custom):
             # Template custom R code
             pass
 
+    else:
+        # Default layout selected
+        call = DEFAULT
+
     return f"{call})"
 
 
@@ -40,40 +45,32 @@ def render_plots(call, plots):
     """Render plot calls from user input."""
     if not plots:
         return call
-    plot_calls = ',\ninitial=c(\n' + ',\n'.join([
-        OPTIONS['plots'][plot['plot_types']['plot_type'].value](
-             # user plot params here
+    plot_calls_list = [
+        get_render_func(plot)(
+            # user plot params as kwargs here
         )
         for plot in plots
-    ]) + ')'
+    ]
+    plot_calls = ',\ninitial=c(\n' + ',\n'.join(plot_calls_list) + ')'
     return call + plot_calls
 
 
-def reduced_dimension_plot(
-        plot_type="UMAP", color_by="Column data",
-        color_by_col="cluster", vb_open="FALSE", pw="6L"):
+def get_render_func(plot):
+    """Return the appropriate function to render plot."""
+    return OPTIONS['plots'][plot['plot_types']['plot_type'].value]
+
+
+def reduced_dimension_plot(pw="6L"):
     """Render a ReducedDimensionPlot object call."""
     return (
         f'''ReducedDimensionPlot(
-        Type="{plot_type}",
-        ColorBy="{color_by}",
-        ColorByColumnData="{color_by_col}",
-        VisualBoxOpen={vb_open},
         PanelWidth={pw})''')
 
 
-def feature_assay_plot(
-            xaxis="Column data", xaxis_column_data="cluster",
-            db_open="FALSE", vb_open="FALSE", color_by="Column data",
-            color_by_col="cluster", pw="6L"):
+def feature_assay_plot(pw="6L"):
     """Render a FeatureAssayPlot object call."""
     return (
-        f'''FeatureAssayPlot(XAxis="{xaxis}",
-        XAxisColumnData="{xaxis_column_data}",
-        DataBoxOpen={db_open},
-        VisualBoxOpen={vb_open},
-        ColorBy="{color_by}",
-        ColorByColumnData="{color_by_col}",
+        f'''FeatureAssayPlot(
         PanelWidth={pw})''')
 
 
@@ -97,3 +94,79 @@ OPTIONS = {
     'colormaps': {},
     'extra': {},
 }
+
+
+DEFAULT = """
+# NB: This option is depricated - Looks like the new way is to set configs in
+#     the sce itself - which can happen outside iSEE.
+#     Should it be omitted?
+iSEEOptions$set(color.maxlevels=40)
+
+
+categorical_color_fun <- function(n){
+  if (n <= 37) {
+    # Less than 37 colours, use something from colour brewer
+    # (joining a bunch of palettes, best colours up front)
+    multiset <-  c(
+        RColorBrewer::brewer.pal(9, "Set1"),
+        RColorBrewer::brewer.pal(8, "Set2"),
+        RColorBrewer::brewer.pal(12, "Set3"),
+        RColorBrewer::brewer.pal(8, "Dark2"))
+    return(multiset[1:n])
+  }
+  else {
+    # More that 37, well at least it looks pretty
+    return(rainbow(n))
+  }
+}
+
+
+ecm <- ExperimentColorMap(
+
+  # The default is viridis::viridis
+  # https://cran.r-project.org/web/packages/viridis/vignettes/intro-to-viridis.html#the-color-scales
+  # Setting continous is entirely a matter of taste
+  # Some find magma easier to read than viridis
+
+  all_continuous = list(
+    assays  = viridis::magma,
+    colData = viridis::magma,
+    rowData = viridis::magma
+  ),
+  all_discrete = list(
+    colData = categorical_color_fun,
+    rowData = categorical_color_fun
+  )
+)
+
+
+# These options are all sce-contents agnostic.
+initial_plots <- c(
+
+  # Show umap with clusters by default
+  ReducedDimensionPlot(
+                   DataBoxOpen=TRUE,
+                   ColorBy="Column data",
+                   VisualBoxOpen=TRUE,
+                   PanelWidth=6L),
+
+  # Show gene expression plot separated (and coloured) by cluster, by default.
+  FeatureAssayPlot(XAxis = "Column data",
+                   DataBoxOpen=TRUE,
+                   VisualBoxOpen=TRUE,
+                   ColorBy="Column data",
+                   PanelWidth=6L
+                   ),
+  # Gene list is better wide
+  RowDataTable(PanelWidth=12L),
+
+  # For cell level observations (QC.)
+  ColumnDataPlot(PanelWidth=6L,
+                 DataBoxOpen=TRUE,
+                 VisualBoxOpen=TRUE )
+)
+
+app <- iSEE(sce,
+            colormap=ecm,
+            initial=initial_plots,
+"""

@@ -72,13 +72,13 @@ suppressWarnings(
 
     <!-- THIS SECTION IN DEVELOPMENT -->
     <conditional name="custom">
-      <param name="selected" label="Customize iSEE display" type="boolean"/>
+      <param name="selected" label="Customize iSEE display" type="boolean" hidden="true"/>
 
       <when value="true">
 
         <conditional name="method">
           <param name="selected" label="Method" type="select">
-            <option value="choice" selected="true"> Preconfigured options </option>
+            <option value="choice" selected="true"> Choice of plots </option>
             <option value="custom"> Custom R configuration </option>
           </param>
 
@@ -90,122 +90,27 @@ suppressWarnings(
             <!-- And a set of colormaps -->
 
             <repeat name="plots" title="Initial plots">
+              <param name="plot_type" type="select" label="Plot type">
+                <option value="reduced_dimension_plot">Reduced dimension plot</option>
+                <option value="feature_assay_plot">Feature assay plot</option>
+                <option value="column_data_plot">Column data plot</option>
+                <option value="row_data_table">Row data table</option>
+                <option value="column_data_table">Column data table</option>
+                <option value="row_data_plot">Row data plot</option>
+                <option value="sample_assay_plot">Sample assay plot</option>
+                <option value="complex_heatmap_plot">Complex heatmap plot</option>
+              </param>
 
-              <conditional name="plot_types">
-                <param name="plot_type" type="select" label="Plot type">
-                  <option value="reduced_dimension_plot">Reduced dimension plot</option>
-                  <option value="feature_assay_plot">Feature assay plot</option>
-                  <option value="column_data_plot">Column data plot</option>
-                  <option value="row_data_table">Row data table</option>
-                  <option value="column_data_table">Column data table</option>
-                  <option value="row_data_plot">Row data plot</option>
-                  <!--
-                  <option value="sample_assay_plot">Sample assay plot</option>
-                  <option value="complex_heatmap_plot">Complex heatmap plot</option>
-                  -->
-                </param>
-
-                <!-- Params for each plot type must match render.py function args -->
-
-                <when value="reduced_dimension_plot">
-                  <param name="plot_type_type" type="select" label="Plot type">
-                    <option value="UMAP">UMAP</option>
-                    <option value="UMAP">PCA</option>
-                  </param>
-
-                  <!-- Pretty sure these don't make sense without reading in the data columns (not possible)
-                  <param name="color_by" type="select" label="Color by">
-                    <option value="Column data">None</option>
-                    <option value="Column data">Column data</option>
-                    <option value="Column data">Feature name</option>
-                    <option value="Column data">Sample name</option>
-                    <option value="Column data">Column selection</option>
-                  </param>
-
-                  <param name="color_by_col" type="select" label="Color by column">
-                    <option value="cluster">cluster</option>
-                  </param>
-                  -->
-
-                  <param name="vb_open" type="select" label="Visual box open">
-                    <option value="TRUE">Yes</option>
-                    <option value="FALSE">No</option>
-                  </param>
-
-                  <param name="pw" type="select" label="Plot width" help="A width of 12 fills an entire row">
-                    <option value="2">2</option>
-                    <option value="4">4</option>
-                    <option value="6" selected="true">6</option>
-                    <option value="8">8</option>
-                    <option value="10">10</option>
-                    <option value="12">12</option>
-                  </param>
-                </when>
-
-                <when value="feature_assay_plot">
-                  <param name="xaxis" type="select" label="Feature to display on X-axis">
-                    <option value="Column data">Column data</option>
-                  </param>
-
-                  <param name="xaxis_column_data" type="select" label="X-axis column data">
-                    <option value="Column data">Column data</option>
-                  </param>
-
-                  <!-- Pretty sure these don't make sense without reading in the data columns (not possible)
-                  <param name="color_by" type="select" label="Color by">
-                    <option value="Column data">Column data</option>
-                  </param>
-
-                  <param name="color_by_col" type="select" label="Color by column">
-                    <option value="cluster">cluster</option>
-                  </param>
-                  -->
-
-                  <param name="db_open" type="select" label="Display box open">
-                    <option value="TRUE">Yes</option>
-                    <option value="FALSE">No</option>
-                  </param>
-
-                  <param name="vb_open" type="select" label="Visual box open">
-                    <option value="TRUE">Yes</option>
-                    <option value="FALSE">No</option>
-                  </param>
-
-                  <param name="pw" type="select" label="Plot width" help="A width of 12 fills an entire row">
-                    <option value="2">2</option>
-                    <option value="4">4</option>
-                    <option value="6" selected="true">6</option>
-                    <option value="8">8</option>
-                    <option value="10">10</option>
-                    <option value="12">12</option>
-                  </param>
-                </when>
-
-                <when value="column_data_plot">
-                  <param name="pw" type="select" label="Plot width" help="A width of 12 fills an entire row">
-                    <option value="2">2</option>
-                    <option value="4">4</option>
-                    <option value="6" selected="true">6</option>
-                    <option value="8">8</option>
-                    <option value="10">10</option>
-                    <option value="12">12</option>
-                  </param>
-                </when>
-
-                <when value="row_data_table">
-                  <param name="pw" type="select" label="Plot width" help="A width of 12 fills an entire row">
-                    <option value="2">2</option>
-                    <option value="4">4</option>
-                    <option value="6" selected="true">6</option>
-                    <option value="8">8</option>
-                    <option value="10">10</option>
-                    <option value="12">12</option>
-                  </param>
-                </when>
-              </conditional>
-
+              <param name="pw" type="select" label="Plot width"
+                  help="A width of 12 fills an entire row">
+                <option value="2">2</option>
+                <option value="4">4</option>
+                <option value="6" selected="true">6</option>
+                <option value="8">8</option>
+                <option value="10">10</option>
+                <option value="12">12</option>
+              </param>
             </repeat>
-
           </when>
 
           <when value="custom">
