@@ -12,21 +12,18 @@
 
   <command><![CDATA[
 
-## WDIR: /import
-
-#set LOG_PATH = "${__tool_data_path__}/isee.log"
+## Container wdir: /import
 
 #set INPUT_PATH = "sce"
 #set RSCRIPT = '/scripts/isee.R'
 
 ln -s '$input.extra_files_path' '$INPUT_PATH' &&
 ln -s '$isee_script' '$RSCRIPT' &&
-ln -s '${__tool_directory__}/isee/params_config.py' ./params_config.py &&
 cp '$isee_script' '$outfile' &&
 
-## Redirect stderr is necessary to stop R "warning" output from 'painting' job
-## status as "failed"
-/scripts/run.sh '$RSCRIPT' > $LOG_PATH 2>&1
+## Redirect stderr - unfortunately necessary to stop R "warning" messages from
+## inferring job status as "failed"
+/scripts/run.sh '$RSCRIPT'
 
   ]]>
   </command>
@@ -34,9 +31,8 @@ cp '$isee_script' '$outfile' &&
   <configfiles>
     <configfile name="isee_script"><![CDATA[
 
-#set INPUT_PATH = "sce"
-
 ## Import render function to template R Shiny app code
+## -----------------------------------------------------------------------------
 #import os
 #import importlib.util
 #set modpath = $os.path.join($__tool_directory__, "isee_render.py")
@@ -44,18 +40,25 @@ cp '$isee_script' '$outfile' &&
 #set render = $importlib.util.module_from_spec(spec)
 #$spec.loader.exec_module(render)
 
-shhh <- suppressPackageStartupMessages  # It's a library, so shhh!
 
-shhh(library(iSEE))
-shhh(library(HDF5Array))
+## Stop warning messages being emitted from R while still allowing genuine job failure
+## -----------------------------------------------------------------------------
+devNull <- file("/dev/null", open = "wt")
+sink(devNull, type = "message")
 
-sce_path <- '$INPUT_PATH'
+
+## Begin R script
+## -----------------------------------------------------------------------------
+
+library(iSEE)
+library(HDF5Array)
+
+sce_path <- 'sce'
 sce <- loadHDF5SummarizedExperiment(sce_path)
 
 $render.app($custom)
 
-suppressWarnings(
-  shiny::runApp(app, host="0.0.0.0", port=8888, quiet=TRUE))
+shiny::runApp(app, host="0.0.0.0", port=8888, quiet=TRUE)
 
 ]]></configfile>
   </configfiles>
@@ -70,7 +73,7 @@ suppressWarnings(
         exported from R."
     />
 
-    <!-- THIS SECTION IN DEVELOPMENT -->
+    <!-- THIS BLOCK IN DEVELOPMENT - CURRENTLY HIDDEN FROM USERS -->
     <conditional name="custom">
       <param name="selected" label="Customize iSEE display" type="boolean" hidden="true"/>
 
@@ -142,34 +145,38 @@ suppressWarnings(
 
 **Overview**
 
-iSEE provides a web interface for visualising single-cell transcriptomics
+iSEE provides a web interface for visualising single-cell transcriptomic
 datasets encapsulated in an HDF5SummarizedExperiment object.
 
 -----
 
 **Input**
 
-The tool takes a single HDF5SummarizedExperiment dataset as an input,
-which can be uploaded as a composite datatype ``rdata.se``, and requires
-two input files: ``se.rds`` and ``assays.h5``. These data can be rendered
-from the R ``HDF5SummarizedExperiment`` object with the function
-``saveHDF5SummarizedExperiment()``. This object comes with the R package
-``HDF5Array``.
+The tool takes a single HDF5SummarizedExperiment object as an input,
+which can be uploaded with the composite datatype ``rdata.se``. This requires
+two input files: ``se.rds`` and ``assays.h5``. Within R, an
+``HDF5SummarizedExperiment`` object can be exported as a directory containing
+these two input files with the function ``saveHDF5SummarizedExperiment()``.
+These utilities can be installed and imported within R from the ``HDF5Array``
+package.
 
 -----
 
 **Useful links:**
 
-Documentation on ``HDF5SummarizedExperiment``:
+- iSEE documentation:
 
-https://rdrr.io/bioc/HDF5Array/man/saveHDF5SummarizedExperiment.html
+  https://isee.github.io/iSEE/
 
-HDF5Array manual:
+- Documentation on ``HDF5SummarizedExperiment`` data object:
 
-https://bioc.ism.ac.jp/packages/3.7/bioc/manuals/HDF5Array/man/HDF5Array.pdf
+  https://rdrr.io/bioc/HDF5Array/man/saveHDF5SummarizedExperiment.html
 
-    ]]>
-  </help>
+- HDF5Array manual:
+
+  https://bioc.ism.ac.jp/packages/3.7/bioc/manuals/HDF5Array/man/HDF5Array.pdf
+
+]]></help>
 
   <citations>
     <citation type="bibtex">

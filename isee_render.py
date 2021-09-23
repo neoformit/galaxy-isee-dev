@@ -5,16 +5,14 @@ as multiple choice (checkbox/select) input fields. Each parameter
 (e.g. "initial") has a list of options whose indices should match the value of
 the input field in the tool XML.
 
-For example:
+In all likelihood, the majority of options in
+iSEE don't make sense without first being able to sniff the data and so are not
+feasible to expose in the Galaxy tool form. Currently you will see that only
+plot type and width can be exposed.
 
-if `params.initial.value = 0`
-
-`PARAM_OPTIONS['initial'][$params.initial[0].value]` should return the
-`ReducedDimensionPlot` config.
-
-Thought - this should probably be a set of Python functions to return an R
-code block from user params (e.g. plot Type, PanelWidth,  ... ).
-
+Currently user configuration is NOT IMPLEMENTED - the code is here but option
+is hidden from user in the tool form. Without ``custom`` selection, this simply
+returns a DEFAULT iSEE configuration (defined at the bottom of this file).
 """
 
 
@@ -27,18 +25,21 @@ def app(custom):
         if custom['method']['selected'].value == 'choice':
             # Template choices into call
             call = render_plots(call, custom['method']['plots'])
+
+            # Don't think this is feasible:
             # call = render_colormap(call, custom['choice']['colormap'])
+
+            # Do "extras" make sense?
             # call = render_extras(call, custom['choice']['extras'])
 
         elif custom['custom']['method']['selected'].value == 'custom':
-            # Template custom R code
+            # Template custom R code - NOT YET CONFIGURED
             pass
 
-    else:
-        # Default layout selected
-        call = DEFAULT
-
     return f"{call})"
+
+    # Default layout selected
+    return DEFAULT
 
 
 def render_plots(call, plots):
@@ -100,7 +101,7 @@ DEFAULT = """
 # NB: This option is depricated - Looks like the new way is to set configs in
 #     the sce itself - which can happen outside iSEE.
 #     Should it be omitted?
-iSEEOptions$set(color.maxlevels=40)
+sce <- registerAppOptions(sce, color.maxlevels=40)
 
 
 categorical_color_fun <- function(n){
@@ -168,5 +169,5 @@ initial_plots <- c(
 
 app <- iSEE(sce,
             colormap=ecm,
-            initial=initial_plots,
+            initial=initial_plots)
 """
