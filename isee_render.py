@@ -1,5 +1,9 @@
 """Pre-configured iSEE options for selection by user.
 
+Currently user configuration is NOT IMPLEMENTED - the code is here but option
+is hidden from user in the tool form. Without ``custom`` selection, this simply
+returns a DEFAULT iSEE configuration (defined at the bottom of this file).
+
 These are preconfigured iSEE parameters that can be chosen by the user
 as multiple choice (checkbox/select) input fields. Each parameter
 (e.g. "initial") has a list of options whose indices should match the value of
@@ -9,10 +13,6 @@ In all likelihood, the majority of options in
 iSEE don't make sense without first being able to sniff the data and so are not
 feasible to expose in the Galaxy tool form. Currently you will see that only
 plot type and width can be exposed.
-
-Currently user configuration is NOT IMPLEMENTED - the code is here but option
-is hidden from user in the tool form. Without ``custom`` selection, this simply
-returns a DEFAULT iSEE configuration (defined at the bottom of this file).
 """
 
 
@@ -36,7 +36,7 @@ def app(custom):
             # Template custom R code - NOT YET CONFIGURED
             pass
 
-    return f"{call})"
+        return f"{call})"
 
     # Default layout selected
     return DEFAULT
